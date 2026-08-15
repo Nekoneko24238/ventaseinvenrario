@@ -172,3 +172,46 @@ export const can = (role: Role | undefined, area: "inventario" | "ventas" | "con
 };
 
 export const canEditInventory = (role?: Role) => role === "admin";
+
+/* ---------- Respaldo local (exportar / importar JSON) ---------- */
+
+export function exportBackup() {
+  const db = load();
+  const payload = { app: "inventario-local", version: 1, exportedAt: new Date().toISOString(), data: db };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `respaldo-inventario-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** Restaura un respaldo. mode "replace" sustituye todo; "merge" fusiona por id. */
+export async function importBackup(file: File, mode: "replace" | "merge" = "replace") {
+  const text = await file.text();
+  const parsed = JSON.parse(text) as { data?: DB } & Partial<DB>;
+  const incoming = (parsed.data ?? parsed) as DB;
+  if (!incoming || !Array.isArray(incoming.products) || !Array.isArray(incoming.sales)) {
+    throw new Error("El archivo no tiene el formato de respaldo esperado.");
+  }
+  if (mode === "replace") {
+    save({ ...seed(), ...incoming });
+    return;
+  }
+  const current = load();
+  const mergeById = <T extends { id: string }>(a: T[], b: T[]) => {
+    const map = new Map(a.map((x) => [x.id, x]));
+    b.forEach((x) => map.set(x.id, x));
+    return Array.from(map.values());
+  };
+  save({
+    ...current,
+    users: mergeById(current.users, incoming.users ?? []),
+    products: mergeById(current.products, incoming.products ?? []),
+    sales: mergeById(current.sales, incoming.sales ?? []),
+    expenses: mergeById(current.expenses, incoming.expenses ?? []),
+    settings: { ...current.settings, ...(incoming.settings ?? {}) },
+    seq: Math.max(current.seq, incoming.seq ?? 1),
+  });
+}

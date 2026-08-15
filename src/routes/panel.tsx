@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, PageTitle } from "@/components/AppShell";
+import { BackupCard } from "@/components/BackupCard";
 import { useAuth, useDB } from "@/lib/store";
 import { methodLabel, money, type PayMethod } from "@/lib/db";
 import { AlertTriangle, Boxes, Receipt, TrendingUp } from "lucide-react";
@@ -88,6 +89,12 @@ function Panel() {
           )}
         </div>
       </div>
+
+      {user?.role === "admin" && (
+        <div className="mt-4">
+          <BackupCard />
+        </div>
+      )}
     </>
   );
 }
