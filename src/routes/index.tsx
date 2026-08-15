@@ -16,10 +16,10 @@ export const Route = createFileRoute("/")({
         content:
           "Sistema local de inventario, ventas con efectivo, divisas y pago móvil, contabilidad y facturación con roles de usuario.",
       },
-      { property: "og:title", content: "Inventario+ | Inventario, ventas y contabilidad" },
+      { property: "og:title", content: "Inventario+ | Control de inventario, ventas y contabilidad" },
       {
         property: "og:description",
-        content: "Gestiona stock, ventas, pagos y facturas desde una base de datos totalmente local.",
+        content: "Sistema local de inventario, ventas con efectivo, divisas y pago móvil, contabilidad y facturación con roles de usuario.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
