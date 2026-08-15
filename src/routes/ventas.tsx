@@ -93,7 +93,7 @@ function Ventas() {
         iva: totals.iva,
         total: totals.total,
         method,
-        reference: method === "pagomovil" ? reference : undefined,
+        ...(method === "pagomovil" ? { reference } : {}),
         rate: d.settings.rate,
         userId: user!.id,
         userName: user!.name,
