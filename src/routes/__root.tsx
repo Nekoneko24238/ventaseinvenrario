@@ -133,6 +133,7 @@ function RootComponent() {
       <AuthProvider>
         <Outlet />
       </AuthProvider>
+      <Toaster />
     </QueryClientProvider>
   );
 }
