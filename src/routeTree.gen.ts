@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ContabilidadRouteImport } from './routes/contabilidad'
+import { Route as InventarioRouteImport } from './routes/inventario'
+import { Route as PanelRouteImport } from './routes/panel'
+import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as VentasRouteImport } from './routes/ventas'
+import { Route as FacturaIdRouteImport } from './routes/factura.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContabilidadRoute = ContabilidadRouteImport.update({
+  id: '/contabilidad',
+  path: '/contabilidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventarioRoute = InventarioRouteImport.update({
+  id: '/inventario',
+  path: '/inventario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelRoute = PanelRouteImport.update({
+  id: '/panel',
+  path: '/panel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VentasRoute = VentasRouteImport.update({
+  id: '/ventas',
+  path: '/ventas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FacturaIdRoute = FacturaIdRouteImport.update({
+  id: '/factura/$id',
+  path: '/factura/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/contabilidad': typeof ContabilidadRoute
+  '/inventario': typeof InventarioRoute
+  '/panel': typeof PanelRoute
+  '/usuarios': typeof UsuariosRoute
+  '/ventas': typeof VentasRoute
+  '/factura/$id': typeof FacturaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/contabilidad': typeof ContabilidadRoute
+  '/inventario': typeof InventarioRoute
+  '/panel': typeof PanelRoute
+  '/usuarios': typeof UsuariosRoute
+  '/ventas': typeof VentasRoute
+  '/factura/$id': typeof FacturaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/contabilidad': typeof ContabilidadRoute
+  '/inventario': typeof InventarioRoute
+  '/panel': typeof PanelRoute
+  '/usuarios': typeof UsuariosRoute
+  '/ventas': typeof VentasRoute
+  '/factura/$id': typeof FacturaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/contabilidad'
+    | '/inventario'
+    | '/panel'
+    | '/usuarios'
+    | '/ventas'
+    | '/factura/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/contabilidad'
+    | '/inventario'
+    | '/panel'
+    | '/usuarios'
+    | '/ventas'
+    | '/factura/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/contabilidad'
+    | '/inventario'
+    | '/panel'
+    | '/usuarios'
+    | '/ventas'
+    | '/factura/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ContabilidadRoute: typeof ContabilidadRoute
+  InventarioRoute: typeof InventarioRoute
+  PanelRoute: typeof PanelRoute
+  UsuariosRoute: typeof UsuariosRoute
+  VentasRoute: typeof VentasRoute
+  FacturaIdRoute: typeof FacturaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +130,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contabilidad': {
+      id: '/contabilidad'
+      path: '/contabilidad'
+      fullPath: '/contabilidad'
+      preLoaderRoute: typeof ContabilidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventario': {
+      id: '/inventario'
+      path: '/inventario'
+      fullPath: '/inventario'
+      preLoaderRoute: typeof InventarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel': {
+      id: '/panel'
+      path: '/panel'
+      fullPath: '/panel'
+      preLoaderRoute: typeof PanelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ventas': {
+      id: '/ventas'
+      path: '/ventas'
+      fullPath: '/ventas'
+      preLoaderRoute: typeof VentasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/factura/$id': {
+      id: '/factura/$id'
+      path: '/factura/$id'
+      fullPath: '/factura/$id'
+      preLoaderRoute: typeof FacturaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ContabilidadRoute: ContabilidadRoute,
+  InventarioRoute: InventarioRoute,
+  PanelRoute: PanelRoute,
+  UsuariosRoute: UsuariosRoute,
+  VentasRoute: VentasRoute,
+  FacturaIdRoute: FacturaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

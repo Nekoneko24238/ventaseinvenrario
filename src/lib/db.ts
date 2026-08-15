@@ -1,0 +1,174 @@
+// Base de datos 100% local (navegador). Sin servidor ni nube.
+export type Role = "admin" | "vendedor" | "contador";
+
+export interface User {
+  id: string;
+  username: string;
+  name: string;
+  role: Role;
+  passHash: string;
+  active: boolean;
+}
+
+export interface Product {
+  id: string;
+  sku: string;
+  name: string;
+  category: string;
+  cost: number; // Bs
+  price: number; // Bs
+  stock: number;
+  minStock: number;
+}
+
+export type PayMethod = "efectivo" | "divisas" | "pagomovil" | "transferencia";
+
+export interface SaleItem {
+  productId: string;
+  name: string;
+  qty: number;
+  price: number;
+  cost: number;
+}
+
+export interface Sale {
+  id: string;
+  number: number;
+  date: string;
+  customer: string;
+  docId: string;
+  items: SaleItem[];
+  subtotal: number;
+  iva: number;
+  total: number;
+  method: PayMethod;
+  reference?: string; // pago móvil: 4 dígitos
+  rate: number; // Bs por USD al momento de la venta
+  userId: string;
+  userName: string;
+}
+
+export interface Expense {
+  id: string;
+  date: string;
+  concept: string;
+  category: string;
+  amount: number;
+}
+
+export interface Settings {
+  business: string;
+  rif: string;
+  address: string;
+  phone: string;
+  ivaPct: number;
+  rate: number;
+}
+
+interface DB {
+  users: User[];
+  products: Product[];
+  sales: Sale[];
+  expenses: Expense[];
+  settings: Settings;
+  seq: number;
+}
+
+const KEY = "inv_local_db_v1";
+export const SESSION_KEY = "inv_local_session_v1";
+
+export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+
+export async function hash(text: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function seed(): DB {
+  return {
+    users: [],
+    products: [],
+    sales: [],
+    expenses: [],
+    seq: 1,
+    settings: {
+      business: "Mi Negocio C.A.",
+      rif: "J-00000000-0",
+      address: "Caracas, Venezuela",
+      phone: "0412-0000000",
+      ivaPct: 16,
+      rate: 36,
+    },
+  };
+}
+
+export function load(): DB {
+  if (typeof window === "undefined") return seed();
+  const raw = window.localStorage.getItem(KEY);
+  if (!raw) return seed();
+  try {
+    return { ...seed(), ...(JSON.parse(raw) as DB) };
+  } catch {
+    return seed();
+  }
+}
+
+export function save(db: DB) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(KEY, JSON.stringify(db));
+  window.dispatchEvent(new Event("localdb"));
+}
+
+export function update(fn: (db: DB) => void) {
+  const db = load();
+  fn(db);
+  save(db);
+  return db;
+}
+
+/** Crea el usuario administrador inicial si la base está vacía. */
+export async function ensureAdmin() {
+  const db = load();
+  if (db.users.length > 0) return;
+  db.users.push({
+    id: uid(),
+    username: "admin",
+    name: "Administrador",
+    role: "admin",
+    passHash: await hash("admin123"),
+    active: true,
+  });
+  if (db.products.length === 0) {
+    db.products = [
+      { id: uid(), sku: "P-001", name: "Harina de maíz 1kg", category: "Alimentos", cost: 18, price: 26, stock: 40, minStock: 10 },
+      { id: uid(), sku: "P-002", name: "Café molido 500g", category: "Alimentos", cost: 55, price: 82, stock: 18, minStock: 6 },
+      { id: uid(), sku: "P-003", name: "Detergente 1L", category: "Limpieza", cost: 30, price: 47, stock: 8, minStock: 10 },
+    ];
+  }
+  save(db);
+}
+
+export const money = (n: number) =>
+  "Bs " + n.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+export const usd = (n: number) =>
+  "$ " + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+export const methodLabel: Record<PayMethod, string> = {
+  efectivo: "Efectivo (Bs)",
+  divisas: "Divisas ($)",
+  pagomovil: "Pago Móvil",
+  transferencia: "Transferencia",
+};
+
+export const can = (role: Role | undefined, area: "inventario" | "ventas" | "contabilidad" | "usuarios") => {
+  if (!role) return false;
+  if (role === "admin") return true;
+  if (role === "vendedor") return area === "inventario" || area === "ventas";
+  if (role === "contador") return area !== "usuarios";
+  return false;
+};
+
+export const canEditInventory = (role?: Role) => role === "admin";
