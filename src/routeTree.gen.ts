@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConfiguracionRouteImport } from './routes/configuracion'
 import { Route as ContabilidadRouteImport } from './routes/contabilidad'
 import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as PanelRouteImport } from './routes/panel'
@@ -20,6 +21,11 @@ import { Route as FacturaIdRouteImport } from './routes/factura.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracionRoute = ConfiguracionRouteImport.update({
+  id: '/configuracion',
+  path: '/configuracion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContabilidadRoute = ContabilidadRouteImport.update({
@@ -55,6 +61,7 @@ const FacturaIdRoute = FacturaIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/configuracion': typeof ConfiguracionRoute
   '/contabilidad': typeof ContabilidadRoute
   '/inventario': typeof InventarioRoute
   '/panel': typeof PanelRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/configuracion': typeof ConfiguracionRoute
   '/contabilidad': typeof ContabilidadRoute
   '/inventario': typeof InventarioRoute
   '/panel': typeof PanelRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/configuracion': typeof ConfiguracionRoute
   '/contabilidad': typeof ContabilidadRoute
   '/inventario': typeof InventarioRoute
   '/panel': typeof PanelRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/configuracion'
     | '/contabilidad'
     | '/inventario'
     | '/panel'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/configuracion'
     | '/contabilidad'
     | '/inventario'
     | '/panel'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/configuracion'
     | '/contabilidad'
     | '/inventario'
     | '/panel'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConfiguracionRoute: typeof ConfiguracionRoute
   ContabilidadRoute: typeof ContabilidadRoute
   InventarioRoute: typeof InventarioRoute
   PanelRoute: typeof PanelRoute
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracion': {
+      id: '/configuracion'
+      path: '/configuracion'
+      fullPath: '/configuracion'
+      preLoaderRoute: typeof ConfiguracionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contabilidad': {
@@ -177,6 +197,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConfiguracionRoute: ConfiguracionRoute,
   ContabilidadRoute: ContabilidadRoute,
   InventarioRoute: InventarioRoute,
   PanelRoute: PanelRoute,
