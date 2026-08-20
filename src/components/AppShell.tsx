@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { BarChart3, Boxes, Calculator, LogOut, Receipt, Users } from "lucide-react";
+import { BarChart3, Boxes, Calculator, Cog, LogOut, Receipt, Users } from "lucide-react";
 import { useAuth } from "@/lib/store";
 import { can } from "@/lib/db";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/ventas", label: "Ventas", icon: Receipt, area: "ventas" as const },
   { to: "/contabilidad", label: "Contabilidad", icon: Calculator, area: "contabilidad" as const },
   { to: "/usuarios", label: "Usuarios", icon: Users, area: "usuarios" as const },
+  { to: "/configuracion", label: "Configuración", icon: Cog, area: "usuarios" as const },
 ];
 
 export function AppShell({ area, children }: { area: "inventario" | "ventas" | "contabilidad" | "usuarios"; children: ReactNode }) {
