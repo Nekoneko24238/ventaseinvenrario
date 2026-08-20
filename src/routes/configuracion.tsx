@@ -30,6 +30,8 @@ function Configuracion() {
   const db = useDB();
   const [form, setForm] = useState(db.settings);
   const [saved, setSaved] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState("");
 
   function save(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +47,24 @@ function Configuracion() {
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  }
+
+  async function fetchRate() {
+    setFetching(true);
+    setFetchError("");
+    try {
+      // DolarAPI: tasa oficial (BCV) del dólar en VES.
+      const res = await fetch("https://dolarapi.com/v1/dolares/oficial");
+      if (!res.ok) throw new Error("No se pudo consultar la tasa.");
+      const data = await res.json();
+      const value = Number(data.venta ?? data.compra ?? data.promedio);
+      if (!value || value <= 0) throw new Error("Tasa no válida en la respuesta.");
+      setForm((f) => ({ ...f, rate: value }));
+    } catch (err) {
+      setFetchError(err instanceof Error ? err.message : "Error al consultar la tasa.");
+    } finally {
+      setFetching(false);
+    }
   }
 
   return (
@@ -97,15 +117,28 @@ function Configuracion() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="rate">Tasa de cambio Bs/$</Label>
-              <Input
-                id="rate"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={form.rate}
-                onChange={(e) => setForm((f) => ({ ...f, rate: Number(e.target.value) }))}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="rate"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={form.rate}
+                  onChange={(e) => setForm((f) => ({ ...f, rate: Number(e.target.value) }))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  title="Consultar tasa oficial (DolarAPI)"
+                  onClick={fetchRate}
+                  disabled={fetching}
+                >
+                  <RefreshCw className={`size-4 ${fetching ? "animate-spin" : ""}`} />
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">Valor del dólar en bolívares.</p>
+              {fetchError && <p className="text-xs text-destructive">{fetchError}</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="iva">IVA (%)</Label>
