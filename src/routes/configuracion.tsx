@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Settings } from "lucide-react";
+import { RefreshCw, Settings } from "lucide-react";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { useDB } from "@/lib/store";
 import { update } from "@/lib/db";
