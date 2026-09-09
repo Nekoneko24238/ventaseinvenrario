@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Minus, Plus, Printer, ShoppingCart, Trash2 } from "lucide-react";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { useAuth, useDB } from "@/lib/store";
-import { methodLabel, money, uid, update, usd, type PayMethod, type SaleItem } from "@/lib/db";
+import { bs, methodLabel, money, uid, update, type PayMethod, type SaleItem } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -230,8 +230,8 @@ function Ventas() {
                 <dd>{money(totals.total)}</dd>
               </div>
               <div className="flex justify-between text-xs text-muted-foreground">
-                <dt>Equivalente</dt>
-                <dd>{usd(totals.total / (db.settings.rate || 1))}</dd>
+                <dt>Equivalente en Bs</dt>
+                <dd>{bs(totals.total, db.settings.rate)}</dd>
               </div>
             </dl>
 

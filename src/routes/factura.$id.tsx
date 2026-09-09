@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Printer } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useDB } from "@/lib/store";
-import { methodLabel, money, usd } from "@/lib/db";
+import { bs, methodLabel, money } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/factura/$id")({
@@ -119,8 +119,8 @@ function Factura() {
             <dd>{money(sale.total)}</dd>
           </div>
           <div className="flex justify-between text-xs text-muted-foreground">
-            <dt>Equivalente</dt>
-            <dd>{usd(sale.total / (sale.rate || 1))}</dd>
+            <dt>Equivalente en Bs</dt>
+            <dd>{bs(sale.total, sale.rate)}</dd>
           </div>
         </dl>
 
