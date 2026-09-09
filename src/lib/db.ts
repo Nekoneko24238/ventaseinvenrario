@@ -142,19 +142,23 @@ export async function ensureAdmin() {
   });
   if (db.products.length === 0) {
     db.products = [
-      { id: uid(), sku: "P-001", name: "Harina de maíz 1kg", category: "Alimentos", cost: 18, price: 26, stock: 40, minStock: 10 },
-      { id: uid(), sku: "P-002", name: "Café molido 500g", category: "Alimentos", cost: 55, price: 82, stock: 18, minStock: 6 },
-      { id: uid(), sku: "P-003", name: "Detergente 1L", category: "Limpieza", cost: 30, price: 47, stock: 8, minStock: 10 },
+      { id: uid(), sku: "P-001", name: "Harina de maíz 1kg", category: "Alimentos", cost: 0.5, price: 0.8, stock: 40, minStock: 10 },
+      { id: uid(), sku: "P-002", name: "Café molido 500g", category: "Alimentos", cost: 1.5, price: 2.3, stock: 18, minStock: 6 },
+      { id: uid(), sku: "P-003", name: "Detergente 1L", category: "Limpieza", cost: 0.9, price: 1.4, stock: 8, minStock: 10 },
     ];
   }
   save(db);
 }
 
+/** Moneda principal del sistema: dólares. */
 export const money = (n: number) =>
-  "Bs " + n.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-export const usd = (n: number) =>
   "$ " + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+export const usd = money;
+
+/** Equivalente en bolívares según la tasa. */
+export const bs = (n: number, rate: number) =>
+  "Bs " + (n * (rate || 0)).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export const methodLabel: Record<PayMethod, string> = {
   efectivo: "Efectivo (Bs)",

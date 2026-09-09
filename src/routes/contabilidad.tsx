@@ -122,8 +122,8 @@ function Contabilidad() {
               <Input value={category} onChange={(e) => setCategory(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Monto (Bs)</Label>
-              <Input type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+              <Label>Monto ($)</Label>
+              <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
             </div>
           </div>
           <Button className="mt-3" onClick={addExpense}>

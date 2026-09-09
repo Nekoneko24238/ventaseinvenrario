@@ -187,12 +187,12 @@ function Inventario() {
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <Label>Costo (Bs)</Label>
-              <Input type="number" value={form.cost} onChange={(e) => setForm({ ...form, cost: Number(e.target.value) })} />
+              <Label>Costo ($)</Label>
+              <Input type="number" step="0.01" value={form.cost} onChange={(e) => setForm({ ...form, cost: Number(e.target.value) })} />
             </div>
             <div className="space-y-1.5">
-              <Label>Precio (Bs)</Label>
-              <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
+              <Label>Precio ($)</Label>
+              <Input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
             </div>
             <div className="space-y-1.5">
               <Label>Existencia</Label>
