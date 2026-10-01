@@ -3,7 +3,19 @@ import { useMemo, useState } from "react";
 import { Minus, Plus, Printer, ShoppingCart, Trash2 } from "lucide-react";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { useAuth, useDB } from "@/lib/store";
-import { bs, methodLabel, money, uid, update, type PayMethod, type SaleItem } from "@/lib/db";
+import {
+  bs,
+  methodLabel,
+  money,
+  salePayments,
+  uid,
+  update,
+  type PayMethod,
+  type Payment,
+  type SaleItem,
+} from "@/lib/db";
+
+type PayDraft = { method: PayMethod; amount: string; reference: string };
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,8 +50,7 @@ function Ventas() {
   const [q, setQ] = useState("");
   const [customer, setCustomer] = useState("");
   const [docId, setDocId] = useState("");
-  const [method, setMethod] = useState<PayMethod>("efectivo");
-  const [reference, setReference] = useState("");
+  const [payments, setPayments] = useState<PayDraft[]>([{ method: "efectivo", amount: "", reference: "" }]);
   const [error, setError] = useState("");
 
   const totals = useMemo(() => {
@@ -47,6 +58,23 @@ function Ventas() {
     const iva = subtotal * (db.settings.ivaPct / 100);
     return { subtotal, iva, total: subtotal + iva };
   }, [cart, db.settings.ivaPct]);
+
+  const paid = payments.reduce((a, p) => a + (Number(p.amount) || 0), 0);
+  const remaining = totals.total - paid;
+
+  function setPay(idx: number, patch: Partial<PayDraft>) {
+    setPayments((ps) => ps.map((p, i) => (i === idx ? { ...p, ...patch } : p)));
+  }
+
+  function addPayment() {
+    setPayments((ps) => {
+      const base =
+        ps.length === 1 && !ps[0].amount ? [{ ...ps[0], amount: totals.total.toFixed(2) }] : ps;
+      const used = base.reduce((a, p) => a + (Number(p.amount) || 0), 0);
+      const rest = Math.max(0, totals.total - used);
+      return [...base, { method: "divisas", amount: rest > 0 ? rest.toFixed(2) : "", reference: "" }];
+    });
+  }
 
   const results = q
     ? db.products.filter((p) => (p.name + p.sku).toLowerCase().includes(q.toLowerCase())).slice(0, 6)
@@ -72,14 +100,25 @@ function Ventas() {
   function checkout() {
     setError("");
     if (cart.length === 0) return setError("Agrega al menos un producto.");
-    if (method === "pagomovil" && !/^\d{4}$/.test(reference))
-      return setError("El pago móvil requiere un número de referencia de 4 dígitos.");
+    const finalPayments: Payment[] =
+      payments.length === 1
+        ? [{ method: payments[0].method, amount: totals.total, reference: payments[0].reference || undefined }]
+        : payments.map((p) => ({ method: p.method, amount: Number(p.amount) || 0, reference: p.reference || undefined }));
+    for (const p of finalPayments) {
+      if (p.method === "pagomovil" && !/^\d{4}$/.test(p.reference ?? ""))
+        return setError("Cada pago móvil requiere un número de referencia de 4 dígitos.");
+      if (payments.length > 1 && p.amount <= 0) return setError("Indica el monto de cada forma de pago.");
+    }
+    if (payments.length > 1 && Math.abs(remaining) >= 0.005)
+      return setError("La suma de los pagos debe ser igual al total.");
+    for (const p of finalPayments) if (p.method !== "pagomovil") delete p.reference;
     for (const item of cart) {
       const p = db.products.find((x) => x.id === item.productId);
       if (p && p.stock < item.qty) return setError(`Stock insuficiente de ${item.name} (${p.stock} disponibles).`);
     }
 
     const id = uid();
+    const firstRef = finalPayments.find((p) => p.reference)?.reference;
     update((d) => {
       const number = d.seq++;
       d.sales.unshift({
@@ -92,8 +131,9 @@ function Ventas() {
         subtotal: totals.subtotal,
         iva: totals.iva,
         total: totals.total,
-        method,
-        ...(method === "pagomovil" ? { reference } : {}),
+        method: finalPayments[0].method,
+        ...(firstRef ? { reference: firstRef } : {}),
+        payments: finalPayments,
         rate: d.settings.rate,
         userId: user!.id,
         userName: user!.name,
@@ -106,7 +146,7 @@ function Ventas() {
     setCart([]);
     setCustomer("");
     setDocId("");
-    setReference("");
+    setPayments([{ method: "efectivo", amount: "", reference: "" }]);
     navigate({ to: "/factura/$id", params: { id } });
   }
 
@@ -185,35 +225,71 @@ function Ventas() {
                 <Label>C.I. / RIF</Label>
                 <Input value={docId} onChange={(e) => setDocId(e.target.value)} placeholder="V-12345678" />
               </div>
-              <div className="space-y-1.5">
-                <Label>Forma de pago</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(Object.keys(methodLabel) as PayMethod[]).map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setMethod(m)}
-                      className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
-                        method === m ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted"
-                      }`}
-                    >
-                      {methodLabel[m]}
-                    </button>
-                  ))}
-                </div>
+              <div className="space-y-2">
+                <Label>Formas de pago</Label>
+                {payments.map((p, idx) => (
+                  <div key={idx} className="space-y-2 rounded-lg border p-2.5">
+                    <div className="flex gap-2">
+                      <select
+                        className="h-9 flex-1 rounded-md border bg-background px-2 text-sm"
+                        value={p.method}
+                        onChange={(e) => setPay(idx, { method: e.target.value as PayMethod, reference: "" })}
+                      >
+                        {(Object.keys(methodLabel) as PayMethod[]).map((m) => (
+                          <option key={m} value={m}>
+                            {methodLabel[m]}
+                          </option>
+                        ))}
+                      </select>
+                      {payments.length > 1 && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => setPayments((ps) => ps.filter((_, i) => i !== idx))}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="flex-1"
+                        value={p.amount}
+                        onChange={(e) => setPay(idx, { amount: e.target.value })}
+                        placeholder={payments.length === 1 ? totals.total.toFixed(2) : "Monto en $"}
+                      />
+                      {p.method === "pagomovil" && (
+                        <Input
+                          className="w-24"
+                          inputMode="numeric"
+                          maxLength={4}
+                          value={p.reference}
+                          onChange={(e) => setPay(idx, { reference: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+                          placeholder="Ref."
+                        />
+                      )}
+                    </div>
+                    {Number(p.amount) > 0 && (
+                      <p className="text-xs text-muted-foreground">≈ {bs(Number(p.amount), db.settings.rate)}</p>
+                    )}
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" className="w-full" onClick={addPayment}>
+                  <Plus className="size-3.5" /> Agregar otro método
+                </Button>
+                {payments.length > 1 && (
+                  <p className={`text-xs ${Math.abs(remaining) < 0.005 ? "text-muted-foreground" : "text-destructive"}`}>
+                    {remaining > 0.005
+                      ? `Falta por pagar: ${money(remaining)}`
+                      : remaining < -0.005
+                        ? `Excede el total por ${money(-remaining)}`
+                        : "Pago completo"}
+                  </p>
+                )}
               </div>
-              {method === "pagomovil" && (
-                <div className="space-y-1.5">
-                  <Label>Referencia (4 dígitos)</Label>
-                  <Input
-                    inputMode="numeric"
-                    maxLength={4}
-                    value={reference}
-                    onChange={(e) => setReference(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                    placeholder="0000"
-                  />
-                </div>
-              )}
             </div>
 
             <dl className="mt-4 space-y-1.5 border-t pt-4 text-sm">
@@ -263,8 +339,10 @@ function Ventas() {
                     <td className="p-3 font-mono text-xs">#{String(s.number).padStart(5, "0")}</td>
                     <td className="p-3">{new Date(s.date).toLocaleString("es-VE")}</td>
                     <td className="p-3">{s.customer}</td>
-                    <td className="p-3">{methodLabel[s.method]}</td>
-                    <td className="p-3 font-mono">{s.reference ?? "—"}</td>
+                    <td className="p-3">{salePayments(s).map((p) => methodLabel[p.method]).join(" + ")}</td>
+                    <td className="p-3 font-mono">
+                      {salePayments(s).map((p) => p.reference).filter(Boolean).join(", ") || "—"}
+                    </td>
                     <td className="p-3 text-muted-foreground">{s.userName}</td>
                     <td className="p-3 text-right font-medium">{money(s.total)}</td>
                     <td className="p-3 text-right">
