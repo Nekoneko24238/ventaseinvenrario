@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Printer } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useDB } from "@/lib/store";
-import { bs, methodLabel, money } from "@/lib/db";
+import { bs, methodLabel, money, salePayments } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/factura/$id")({
@@ -66,14 +66,18 @@ function Factura() {
             <span className="text-muted-foreground">C.I./RIF: </span>
             {sale.docId || "—"}
           </p>
-          <p>
+          <div className="sm:col-span-2">
             <span className="text-muted-foreground">Forma de pago: </span>
-            {methodLabel[sale.method]}
-          </p>
-          <p>
-            <span className="text-muted-foreground">Referencia: </span>
-            {sale.reference ?? "—"}
-          </p>
+            {salePayments(sale).map((p, idx) => (
+              <span key={idx} className="mr-3 inline-block">
+                {methodLabel[p.method]} {money(p.amount)}
+                {p.method === "efectivo" || p.method === "pagomovil" || p.method === "transferencia"
+                  ? ` (${bs(p.amount, sale.rate)})`
+                  : ""}
+                {p.reference ? ` · Ref. ${p.reference}` : ""}
+              </span>
+            ))}
+          </div>
           <p>
             <span className="text-muted-foreground">Atendido por: </span>
             {sale.userName}
