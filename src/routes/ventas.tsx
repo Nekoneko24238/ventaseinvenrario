@@ -102,7 +102,7 @@ function Ventas() {
     if (cart.length === 0) return setError("Agrega al menos un producto.");
     const finalPayments: Payment[] =
       payments.length === 1
-        ? [{ method: payments[0].method, amount: totals.total, reference: payments[0].reference || undefined }]
+        ? [{ method: payments[0]!.method, amount: totals.total, reference: payments[0]!.reference || undefined }]
         : payments.map((p) => ({ method: p.method, amount: Number(p.amount) || 0, reference: p.reference || undefined }));
     for (const p of finalPayments) {
       if (p.method === "pagomovil" && !/^\d{4}$/.test(p.reference ?? ""))
@@ -131,7 +131,7 @@ function Ventas() {
         subtotal: totals.subtotal,
         iva: totals.iva,
         total: totals.total,
-        method: finalPayments[0].method,
+        method: finalPayments[0]!.method,
         ...(firstRef ? { reference: firstRef } : {}),
         payments: finalPayments,
         rate: d.settings.rate,
