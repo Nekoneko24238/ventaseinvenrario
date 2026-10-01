@@ -68,7 +68,7 @@ function Ventas() {
 
   function addPayment() {
     setPayments((ps) => {
-      const base =
+      const base: PayDraft[] =
         ps.length === 1 && !ps[0].amount ? [{ ...ps[0], amount: totals.total.toFixed(2) }] : ps;
       const used = base.reduce((a, p) => a + (Number(p.amount) || 0), 0);
       const rest = Math.max(0, totals.total - used);

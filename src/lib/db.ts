@@ -52,7 +52,7 @@ export interface Sale {
 export interface Payment {
   method: PayMethod;
   amount: number; // $
-  reference?: string;
+  reference?: string | undefined;
 }
 
 /** Pagos de una venta (compatible con ventas antiguas de un solo método). */
