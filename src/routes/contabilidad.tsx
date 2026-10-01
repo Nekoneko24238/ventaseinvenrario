@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { useDB } from "@/lib/store";
-import { methodLabel, money, uid, update, type PayMethod } from "@/lib/db";
+import { methodLabel, money, salePayments, uid, update, type PayMethod } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,7 +50,7 @@ function Contabilidad() {
     const cogs = sales.reduce((a, s) => a + s.items.reduce((b, i) => b + i.cost * i.qty, 0), 0);
     const exp = expenses.reduce((a, e) => a + e.amount, 0);
     const byMethod = sales.reduce<Record<string, number>>((acc, s) => {
-      acc[s.method] = (acc[s.method] ?? 0) + s.total;
+      salePayments(s).forEach((p) => (acc[p.method] = (acc[p.method] ?? 0) + p.amount));
       return acc;
     }, {});
     return { gross, iva, cogs, exp, profit: gross - cogs - exp, byMethod };

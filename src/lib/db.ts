@@ -41,12 +41,25 @@ export interface Sale {
   subtotal: number;
   iva: number;
   total: number;
-  method: PayMethod;
+  method: PayMethod; // método principal (primer pago)
   reference?: string; // pago móvil: 4 dígitos
+  payments?: Payment[]; // pagos combinados
   rate: number; // Bs por USD al momento de la venta
   userId: string;
   userName: string;
 }
+
+export interface Payment {
+  method: PayMethod;
+  amount: number; // $
+  reference?: string | undefined;
+}
+
+/** Pagos de una venta (compatible con ventas antiguas de un solo método). */
+export const salePayments = (s: Sale): Payment[] =>
+  s.payments && s.payments.length > 0
+    ? s.payments
+    : [{ method: s.method, amount: s.total, reference: s.reference }];
 
 export interface Expense {
   id: string;

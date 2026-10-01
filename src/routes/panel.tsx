@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { BackupCard } from "@/components/BackupCard";
 import { useAuth, useDB } from "@/lib/store";
-import { methodLabel, money, type PayMethod } from "@/lib/db";
+import { methodLabel, money, salePayments, type PayMethod } from "@/lib/db";
 import { AlertTriangle, Boxes, Receipt, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/panel")({
@@ -45,7 +45,7 @@ function Panel() {
   const low = db.products.filter((p) => p.stock <= p.minStock);
 
   const byMethod = todaySales.reduce<Record<string, number>>((acc, s) => {
-    acc[s.method] = (acc[s.method] ?? 0) + s.total;
+    salePayments(s).forEach((p) => (acc[p.method] = (acc[p.method] ?? 0) + p.amount));
     return acc;
   }, {});
 
